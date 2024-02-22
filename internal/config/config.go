@@ -12,15 +12,21 @@ import (
 // структура для хранения параметров сервера
 type Config struct {
 	// Session  *SessionConfig  `yaml:"-"`
-	Server *ServerConfig `yaml:"server"`
+	API   *APIConfig   `yaml:"api"`
+	Proxy *ProxyConfig `yaml:"proxy"`
 	// CORS     *CORSConfig     `yaml:"cors"`
 	Database *DatabaseConfig `yaml:"db"`
 	Logging  *LoggingConfig  `yaml:"logging"`
 }
 
-type ServerConfig struct {
-	BackendPort uint   `yaml:"backend_port"`
-	Host        string `yaml:"host"`
+type APIConfig struct {
+	Port uint   `yaml:"port"`
+	Host string `yaml:"host"`
+}
+
+type ProxyConfig struct {
+	Port uint   `yaml:"port"`
+	Host string `yaml:"host"`
 }
 
 type DatabaseConfig struct {

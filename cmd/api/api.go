@@ -58,7 +58,7 @@ func main() {
 	logger.Info("Router configured")
 
 	var server = http.Server{
-		Addr:    fmt.Sprintf(":%d", config.Server.BackendPort),
+		Addr:    fmt.Sprintf(":%d", config.API.Port),
 		Handler: mux,
 	}
 

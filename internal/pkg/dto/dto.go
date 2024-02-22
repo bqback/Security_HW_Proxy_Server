@@ -23,3 +23,10 @@ type RequestID struct {
 type ResponseID struct {
 	Value uint64
 }
+
+type key int
+
+const (
+	ErrorKey key = iota
+	LoggerKey
+)

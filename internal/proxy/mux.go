@@ -1,11 +1,11 @@
-package api
+package proxy
 
 import (
 	"net/http"
-	"proxy_server/internal/api/handlers"
 	"proxy_server/internal/config"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/middleware"
+	"proxy_server/internal/proxy/handlers"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -21,9 +21,8 @@ func GetChiMux(manager handlers.Handlers, config config.Config, logger logging.I
 	mux.Use(middleware.PanicRecovery)
 	// mux.Use(middleware.JsonHeader)
 
-	mux.Route("/requests", func(r chi.Router) {
-		r.Get("/", manager.RequestHandler.GetAllRequests)
-		r.Get("/{id}", manager.RequestHandler.GetSingleRequest)
+	mux.Route("/", func(r chi.Router) {
+		r.Connect("/", manager.ConnectHandler.Connect)
 	})
 	return mux, nil
 }
