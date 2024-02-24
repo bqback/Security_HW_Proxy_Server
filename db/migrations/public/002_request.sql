@@ -2,6 +2,8 @@ CREATE TABLE IF NOT EXISTS public."request"
 (
     id serial NOT NULL,
     method text NOT NULL,
+    scheme text NOT NULL, 
+    host text NOT NULL,
     path text NOT NULL,
     get jsonb,
     headers jsonb,

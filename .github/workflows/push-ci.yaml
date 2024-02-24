@@ -16,6 +16,9 @@ jobs:
       
       - name: Install Go
         uses: actions/setup-go@v4
+        with:
+          cache: false
+          go-version: '1.22'
       
       - name: Run linter
         uses: golangci/golangci-lint-action@v3
@@ -25,19 +28,17 @@ jobs:
       - name: Build .env file
         uses: ./.github/actions/build-dot-env
         with:
-          session_days: ${{ vars.SESSION_DURATION_DAYS }}
-          session_hours: ${{ vars.SESSION_DURATION_HOURS }}
-          session_minutes: ${{ vars.SESSION_DURATION_MINUTES }}
-          session_seconds: ${{ vars.SESSION_DURATION_SECONDS }}
-          session_id_length: ${{ vars.SESSION_ID_LENGTH }}
           migrator_pw: ${{ secrets.MIGRATOR_PASSWORD }}
           postgres_user: ${{ secrets.POSTGRES_USER }}
           postgres_pwd: ${{ secrets.POSTGRES_PASSWORD }}
           postgres_table: ${{ secrets.POSTGRES_TABLE }}
           postgres_host: ${{ secrets.POSTGRES_HOST }}
 
-      - name: Build the binary
-        run: go build -o yablonka-backend ./cmd/app/main.go
+      - name: Build the api binary
+        run: go build -o api ./cmd/api/api.go
+
+      - name: Build the proxy binary
+        run: go build -o proxy ./cmd/proxy/proxy.go
 
   docker:
     name: Docker build and publish

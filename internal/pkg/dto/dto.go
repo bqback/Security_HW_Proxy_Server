@@ -8,6 +8,8 @@ import (
 type IncomingRequest struct {
 	Method     string
 	Path       string
+	Scheme     string
+	Host       string
 	GetParams  url.Values
 	Headers    http.Header
 	Cookies    []*http.Cookie

@@ -31,9 +31,13 @@ func NewHandlers(services *service.Services) *Handlers {
 // возвращает HTTPHandler с необходимыми сервисами
 func NewHTTPHandler(reqs service.IRequestService, resps service.IResponseService) *HTTPHandler {
 	return &HTTPHandler{
-		client: http.Client{},
-		reqs:   reqs,
-		resps:  resps,
+		client: http.Client{
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
+		reqs:  reqs,
+		resps: resps,
 	}
 }
 
@@ -41,8 +45,12 @@ func NewHTTPHandler(reqs service.IRequestService, resps service.IResponseService
 // возвращает HTTPSHandler с необходимыми сервисами
 func NewHTTPSHandler(reqs service.IRequestService, resps service.IResponseService) *HTTPSHandler {
 	return &HTTPSHandler{
-		client: http.Client{},
-		reqs:   reqs,
-		resps:  resps,
+		client: http.Client{
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
+		reqs:  reqs,
+		resps: resps,
 	}
 }

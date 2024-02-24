@@ -38,6 +38,8 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reqObj := dto.IncomingRequest{
 		Method:     r.Method,
 		Path:       r.URL.Path,
+		Scheme:     r.URL.Scheme,
+		Host:       r.URL.Host,
 		GetParams:  r.URL.Query(),
 		Headers:    r.Header,
 		Cookies:    r.Cookies(),

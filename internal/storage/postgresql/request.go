@@ -34,7 +34,7 @@ func (s PgRequestStorage) StoreRequest(ctx context.Context, request *dto.Incomin
 	sql, args, err := squirrel.
 		Insert("public.request").
 		Columns(allRequestInsertFields...).
-		Values(request.Method, request.Path, request.GetParams, request.Headers, request.Cookies, request.PostParams).
+		Values(request.Method, request.Scheme, request.Host, request.Path, request.GetParams, request.Headers, request.Cookies, request.PostParams).
 		PlaceholderFormat(squirrel.Dollar).
 		Suffix("RETURNING id").
 		ToSql()
