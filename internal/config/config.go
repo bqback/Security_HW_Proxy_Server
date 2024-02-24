@@ -11,10 +11,8 @@ import (
 // ServerConfig
 // структура для хранения параметров сервера
 type Config struct {
-	// Session  *SessionConfig  `yaml:"-"`
-	API   *APIConfig   `yaml:"api"`
-	Proxy *ProxyConfig `yaml:"proxy"`
-	// CORS     *CORSConfig     `yaml:"cors"`
+	API      *APIConfig      `yaml:"api"`
+	Proxy    *ProxyConfig    `yaml:"proxy"`
 	Database *DatabaseConfig `yaml:"db"`
 	Logging  *LoggingConfig  `yaml:"logging"`
 }
