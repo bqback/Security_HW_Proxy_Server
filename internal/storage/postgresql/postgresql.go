@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"proxy_server/internal/config"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const nodeName = "storage"

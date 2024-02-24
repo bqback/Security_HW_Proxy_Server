@@ -1,6 +1,7 @@
 package repeat
 
 import (
+	"context"
 	"proxy_server/internal/pkg/dto"
 	"proxy_server/internal/storage"
 )
@@ -15,7 +16,7 @@ func NewRepeatService(requestStorage storage.IRequestStorage) *RepeatService {
 	}
 }
 
-func (rs RepeatService) RepeatRequest(requestID dto.RequestID) error {
+func (rs RepeatService) RepeatRequest(ctx context.Context, requestID dto.RequestID) error {
 	// TODO Implement
 	return nil
 }

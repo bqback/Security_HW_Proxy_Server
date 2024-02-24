@@ -1,13 +1,15 @@
 package service
 
 import (
+	"context"
 	"proxy_server/internal/pkg/dto"
 	"proxy_server/internal/pkg/entities"
 )
 
 type IResponseService interface {
-	StoreResponse(*dto.IncomingResponse) error
-	GetResponseByRequestID(*dto.RequestID) (*entities.Response, error)
+	StoreResponse(context.Context, *dto.IncomingResponse, *dto.RequestID) error
+	GetResponseByRequestID(context.Context, *dto.RequestID) (*entities.Response, error)
+	GetResponseByResponseID(context.Context, *dto.ResponseID) (*entities.Response, error)
 	// GetAllRequests() (*[]entities.Request, error)
 	// GetSingleRequest(dto.RequestID) (*entities.Request, error)
 }

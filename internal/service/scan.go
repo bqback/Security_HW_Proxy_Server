@@ -1,7 +1,10 @@
 package service
 
-import "proxy_server/internal/pkg/dto"
+import (
+	"context"
+	"proxy_server/internal/pkg/dto"
+)
 
 type IScanService interface {
-	ScanRequest(dto.RequestID) error
+	ScanRequest(context.Context, dto.RequestID) error
 }
