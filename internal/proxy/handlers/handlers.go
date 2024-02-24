@@ -1,11 +1,19 @@
 package handlers
 
-import "proxy_server/internal/service"
+import (
+	"net/http"
+	"proxy_server/internal/service"
+)
 
 type Handlers struct {
-	ConnectHandler
-	RequestHandler
-	ResponseHandler
+	Http  IProxyHandler
+	Https IProxyHandler
+}
+
+type IProxyHandler interface {
+	GetRequestService() service.IRequestService
+	GetResponseService() service.IResponseService
+	ServeHTTP(http.ResponseWriter, *http.Request)
 }
 
 const nodeName = "handler"
@@ -14,30 +22,27 @@ const nodeName = "handler"
 // возвращает HandlerManager со всеми хэндлерами приложения
 func NewHandlers(services *service.Services) *Handlers {
 	return &Handlers{
-		ConnectHandler:  *NewConnectHandler(),
-		RequestHandler:  *NewRequestHandler(services.Request),
-		ResponseHandler: *NewResponseHandler(services.Response),
+		Http:  *NewHTTPHandler(services.Request, services.Response),
+		Https: *NewHTTPSHandler(services.Request, services.Response),
 	}
 }
 
-// NewConnectHandler
-// возвращает ConnectHandler с необходимыми сервисами
-func NewConnectHandler() *ConnectHandler {
-	return &ConnectHandler{}
-}
-
-// NewRequestHandler
-// возвращает RequestHandler с необходимыми сервисами
-func NewRequestHandler(reqs service.IRequestService) *RequestHandler {
-	return &RequestHandler{
-		rs: reqs,
+// NewHTTPHandler
+// возвращает HTTPHandler с необходимыми сервисами
+func NewHTTPHandler(reqs service.IRequestService, resps service.IResponseService) *HTTPHandler {
+	return &HTTPHandler{
+		client: http.Client{},
+		reqs:   reqs,
+		resps:  resps,
 	}
 }
 
-// NewResponseHandler
-// возвращает ResponseHandler с необходимыми сервисами
-func NewResponseHandler(reps service.IResponseService) *ResponseHandler {
-	return &ResponseHandler{
-		rs: reps,
+// NewHTTPSHandler
+// возвращает HTTPSHandler с необходимыми сервисами
+func NewHTTPSHandler(reqs service.IRequestService, resps service.IResponseService) *HTTPSHandler {
+	return &HTTPSHandler{
+		client: http.Client{},
+		reqs:   reqs,
+		resps:  resps,
 	}
 }
