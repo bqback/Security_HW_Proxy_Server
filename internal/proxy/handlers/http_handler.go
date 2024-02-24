@@ -2,14 +2,13 @@ package handlers
 
 import (
 	"bytes"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"proxy_server/internal/apperrors"
-	"proxy_server/internal/pkg/dto"
 	"proxy_server/internal/service"
 	"proxy_server/internal/utils"
 )
@@ -34,26 +33,12 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	requestID := chimw.GetReqID(ctx)
 	funcName := "HTTP Handler"
 
-	logger.DebugFmt("New request", requestID, funcName, nodeName)
-	reqObj := dto.IncomingRequest{
-		Method:     r.Method,
-		Path:       r.URL.Path,
-		Scheme:     r.URL.Scheme,
-		Host:       r.URL.Host,
-		GetParams:  r.URL.Query(),
-		Headers:    r.Header,
-		Cookies:    r.Cookies(),
-		PostParams: r.PostForm,
-	}
-	reqID, err := h.reqs.StoreRequest(ctx, &reqObj)
-	if err != nil {
-		logger.Error("Failed to store request: " + err.Error())
-		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
-		return
-	}
+	log.Println("Original", r)
 
 	r.Header.Del("Proxy-Connection")
 	r.RequestURI = ""
+
+	logger.DebugFmt("New request", requestID, funcName, nodeName)
 
 	response, err := h.client.Do(r)
 	if err != nil {
@@ -62,22 +47,26 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(r)
-
 	logger.DebugFmt("Got response", requestID, funcName, nodeName)
 
-	rawBody, err := io.ReadAll(response.Body)
+	reqObj, err := requestToObj(r, logger)
 	if err != nil {
-		logger.Error("Failed to read response body: " + err.Error())
+		logger.Error("Failed to parse request into object: " + err.Error())
+		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
+	}
+	reqID, err := h.reqs.StoreRequest(ctx, &reqObj)
+	if err != nil {
+		logger.Error("Failed to store request: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
 		return
 	}
 
-	respObj := dto.IncomingResponse{
-		Code:    response.StatusCode,
-		Message: http.StatusText(response.StatusCode),
-		Headers: response.Header,
-		Body:    string(rawBody),
+	respObj, err := responseToObj(response, logger)
+	if err != nil {
+		logger.Error("Failed to parse request into object: " + err.Error())
+		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
 	}
 	err = h.resps.StoreResponse(ctx, &respObj, reqID)
 	if err != nil {

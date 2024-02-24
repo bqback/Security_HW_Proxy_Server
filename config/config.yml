@@ -31,7 +31,8 @@ tls:
   dir: ".tls"
   cert_dir: "certs"
   age_years: 10
-  key_file: "ca.key"
-  cert_file: "ca.crt"
+  ca_key: "ca.key"
   ca_gen: "gen_ca.sh"
+  ca_cert: "ca.crt"
+  cert_key: "cert.key"
   cert_gen: "gen_cert.sh"

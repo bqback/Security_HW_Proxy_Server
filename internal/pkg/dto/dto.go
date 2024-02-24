@@ -14,6 +14,7 @@ type IncomingRequest struct {
 	Headers    http.Header
 	Cookies    []*http.Cookie
 	PostParams url.Values
+	Body       string
 }
 
 type IncomingResponse struct {

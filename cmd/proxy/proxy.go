@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"proxy_server/internal/config"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/proxy"
 	"proxy_server/internal/proxy/handlers"
-	"proxy_server/internal/proxytls"
+	proxytls "proxy_server/internal/proxy/tls"
 	"proxy_server/internal/service"
 	"proxy_server/internal/storage"
 	"proxy_server/internal/storage/postgresql"
@@ -56,8 +55,7 @@ func main() {
 	services := service.NewServices(storages)
 	logger.Info("Services configured")
 
-	certPath := filepath.Join(config.TLS.TLSDir, config.TLS.CertDir)
-	handlers := handlers.NewHandlers(services, ca, certPath)
+	handlers := handlers.NewHandlers(services, ca, config.TLS)
 	logger.Info("Handlers configured")
 
 	mux, err := proxy.GetChiMux(*handlers, *config, &logger)

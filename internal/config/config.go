@@ -50,13 +50,14 @@ type LoggingConfig struct {
 }
 
 type TLSConfig struct {
-	TLSDir      string `yaml:"dir"`
-	CertDir     string `yaml:"cert_dir"`
-	AgeYears    uint   `yaml:"age_years"`
-	KeyFile     string `yaml:"key_file"`
-	CertFile    string `yaml:"cert_file"`
-	CAGenFile   string `yaml:"ca_gen"`
-	CertGenFile string `yaml:"cert_gen"`
+	TLSDir        string `yaml:"dir"`
+	CertDir       string `yaml:"cert_dir"`
+	AgeYears      uint   `yaml:"age_years"`
+	CAKeyFile     string `yaml:"ca_key"`
+	CACertFile    string `yaml:"ca_cert"`
+	CAGenScript   string `yaml:"ca_gen"`
+	CertKeyFile   string `yaml:"cert_key"`
+	CertGenScript string `yaml:"cert_gen"`
 }
 
 // LoadConfig
@@ -105,6 +106,10 @@ func LoadConfig(envPath string, configPath string) (*Config, error) {
 		return nil, err
 	}
 	config.TLS.TLSDir = filepath.Join(homeDir, config.TLS.TLSDir)
+	config.TLS.CertDir = filepath.Join(config.TLS.TLSDir, config.TLS.CertDir)
+	config.TLS.CACertFile = filepath.Join(config.TLS.TLSDir, config.TLS.CACertFile)
+	config.TLS.CAKeyFile = filepath.Join(config.TLS.TLSDir, config.TLS.CAKeyFile)
+	config.TLS.CertKeyFile = filepath.Join(config.TLS.TLSDir, config.TLS.CertKeyFile)
 
 	return &config, nil
 }

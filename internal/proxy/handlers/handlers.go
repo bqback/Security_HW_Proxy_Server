@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/tls"
 	"net/http"
+	"proxy_server/internal/config"
 	"proxy_server/internal/service"
 )
 
@@ -21,10 +22,10 @@ const nodeName = "handler"
 
 // NewHandlers
 // возвращает HandlerManager со всеми хэндлерами приложения
-func NewHandlers(services *service.Services, ca tls.Certificate, certPath string) *Handlers {
+func NewHandlers(services *service.Services, ca tls.Certificate, config *config.TLSConfig) *Handlers {
 	return &Handlers{
 		Http:  *NewHTTPHandler(services.Request, services.Response),
-		Https: *NewHTTPSHandler(services.Request, services.Response, ca, certPath),
+		Https: *NewHTTPSHandler(services.Request, services.Response, ca, config),
 	}
 }
 
@@ -44,10 +45,10 @@ func NewHTTPHandler(reqs service.IRequestService, resps service.IResponseService
 
 // NewHTTPSHandler
 // возвращает HTTPSHandler с необходимыми сервисами
-func NewHTTPSHandler(reqs service.IRequestService, resps service.IResponseService, ca tls.Certificate, certPath string) *HTTPSHandler {
+func NewHTTPSHandler(reqs service.IRequestService, resps service.IResponseService, ca tls.Certificate, config *config.TLSConfig) *HTTPSHandler {
 	return &HTTPSHandler{
-		ca:       ca,
-		certPath: certPath,
+		ca:        ca,
+		tlsConfig: config,
 		client: http.Client{
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return http.ErrUseLastResponse
