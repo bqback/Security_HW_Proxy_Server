@@ -1,0 +1,43 @@
+name: "Build .env file for CI"
+description: "Builds a .env to be used for the build CI job"
+
+inputs:
+  location:
+    description: "The location at which to build the .env file"
+    required: false
+    default: ""
+  migrator_pw:
+    description: "Password for the migrator"
+    required: true
+  postgres_user:
+    description: "Username of the DB owner user"
+    required: true
+  postgres_pwd:
+    description: "Password of the DB owner user"
+    required: true
+  postgres_table:
+    description: "Name of the DB Table"
+    required: true
+  postgres_host:
+    description: "Host for the DB connection (should be db for Docker)"
+    required: false
+    default: "localhost"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: "Build .env file"
+      shell: bash
+      run: |
+        echo "MIGRATOR_PASSWORD=\"${{ inputs.migrator_pw }}\"" >> ${{ inputs.location }}.env
+        echo "POSTGRES_USER=\"${{ inputs.postgres_user }}\"" >> ${{ inputs.location }}.env
+        echo "POSTGRES_PASSWORD=\"${{ inputs.postgres_pw }}\"" >> ${{ inputs.location }}.env
+        echo "POSTGRES_DB=\"${{ inputs.postgres_table }}\"" >> ${{ inputs.location }}.env
+        echo "POSTGRES_HOST=\"${{ inputs.postgres_host }}\"" >> ${{ inputs.location }}.env
+
+    - name: "Verify file exists"
+      shell: bash
+      run: cat ${{ inputs.location }}.env

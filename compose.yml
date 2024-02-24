@@ -1,0 +1,53 @@
+name: proxy-server
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./deployments/API/Dockerfile
+    container_name: web-api
+    env_file:
+      - ./config/.env
+    ports:
+      - 8000:8000
+    links:
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+        sh -c "echo 'Migrating database' &&
+              ./tern migrate -c db/migrations/public/tern.conf -m db/migrations/public/ &&
+              echo 'Finished database migrations' &&
+              echo 'Starting web API' &&
+              ./api"
+  
+  proxy:
+    build:
+      context: .
+      dockerfile: ./deployments/proxy/Dockerfile
+    container_name: proxy-server
+    env_file:
+      - ./config/.env
+    ports:
+      - 8080:8080
+    links:
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+        sh -c "echo 'Starting proxy' &&
+              ./proxy"
+  
+  db:
+    image: postgres:latest
+    container_name: proxy-db
+    env_file:
+      - ./config/.env
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
