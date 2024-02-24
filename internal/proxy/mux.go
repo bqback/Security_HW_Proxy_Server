@@ -22,8 +22,8 @@ func GetChiMux(manager handlers.Handlers, config config.Config, logger logging.I
 	// mux.Use(middleware.JsonHeader)
 
 	mux.Route("/", func(r chi.Router) {
-		r.Connect("/", manager.Https.ServeHTTP)
-		r.Handle("/", manager.Http)
+		r.Connect("/*", manager.Https.ServeHTTP)
+		r.Handle("/*", manager.Http)
 	})
 	return mux, nil
 }
