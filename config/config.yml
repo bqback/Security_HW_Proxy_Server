@@ -11,8 +11,8 @@ proxy:
 db:
   user: postgres
   port: 5432
-  db_name: Proxy
-  app_name: Proxy
+  db_name: ProxyStorage
+  app_name: ProxyStorage
   schema: public
   connection_timeout: 5
 
