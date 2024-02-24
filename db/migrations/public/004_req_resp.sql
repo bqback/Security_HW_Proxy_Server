@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS public.request_response
+CREATE TABLE IF NOT EXISTS public."request_response"
 (
     id_request serial NOT NULL,
     id_response serial NOT NULL,
