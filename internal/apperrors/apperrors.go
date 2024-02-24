@@ -8,15 +8,20 @@ import (
 // const nodeName string = "error"
 
 var (
-	ErrInvalidLoggingLevel = errors.New("invalid logging level")
+	ErrInvalidLoggingLevel      = errors.New("invalid logging level")
+	ErrLoggerMissingFromContext = errors.New("logger missing from context")
 )
 
 var (
-	ErrEnvNotFound = errors.New("unable to load .env file")
-)
-
-var (
+	ErrEnvNotFound       = errors.New("unable to load .env file")
 	ErrDatabasePWMissing = errors.New("database password is missing from env")
+)
+
+var (
+	ErrCouldNotBuildQuery       = errors.New("failed to build SQL query")
+	ErrCouldNotBeginTransaction = errors.New("failed to start DB transaction")
+	ErrCouldNotRollback         = errors.New("failed to roll back after a failed query")
+	ErrCouldNotCommit           = errors.New("failed to commit DB transaction changes")
 )
 
 type ErrorResponse struct {

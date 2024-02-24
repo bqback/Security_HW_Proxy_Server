@@ -1,18 +1,23 @@
 package dto
 
+import (
+	"net/http"
+	"net/url"
+)
+
 type IncomingRequest struct {
 	Method     string
 	Path       string
-	GetParams  map[string]interface{}
-	Headers    map[string]string
-	Cookies    map[string]interface{}
-	PostParams map[string]interface{}
+	GetParams  url.Values
+	Headers    http.Header
+	Cookies    []*http.Cookie
+	PostParams url.Values
 }
 
 type IncomingResponse struct {
 	Code    int
 	Message string
-	Headers map[string]string
+	Headers http.Header
 	Body    string
 }
 
