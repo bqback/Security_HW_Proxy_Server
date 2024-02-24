@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.21.1 AS build-stage
+FROM golang:1.22 AS build-stage
 WORKDIR /app
 
 # Always needed, never changes => should be done first for caching purposes

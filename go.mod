@@ -1,6 +1,6 @@
 module proxy_server
 
-go 1.21.1
+go 1.22
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
