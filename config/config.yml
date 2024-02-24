@@ -26,3 +26,12 @@ logging:
   level_based_report: true
   report_caller: true
   disable_level_truncation: true
+
+tls:
+  dir: ".tls"
+  cert_dir: "certs"
+  age_years: 10
+  key_file: "ca.key"
+  cert_file: "ca.crt"
+  ca_gen: "gen_ca.sh"
+  cert_gen: "gen_cert.sh"

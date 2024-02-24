@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"proxy_server/internal/apperrors"
 
 	"github.com/joho/godotenv"
@@ -15,6 +16,7 @@ type Config struct {
 	Proxy    *ProxyConfig    `yaml:"proxy"`
 	Database *DatabaseConfig `yaml:"db"`
 	Logging  *LoggingConfig  `yaml:"logging"`
+	TLS      *TLSConfig      `yaml:"tls"`
 }
 
 type APIConfig struct {
@@ -45,6 +47,16 @@ type LoggingConfig struct {
 	DisableLevelTruncation bool   `yaml:"disable_level_truncation"`
 	LevelBasedReport       bool   `yaml:"level_based_report"`
 	ReportCaller           bool   `yaml:"report_caller"`
+}
+
+type TLSConfig struct {
+	TLSDir      string `yaml:"dir"`
+	CertDir     string `yaml:"cert_dir"`
+	AgeYears    uint   `yaml:"age_years"`
+	KeyFile     string `yaml:"key_file"`
+	CertFile    string `yaml:"cert_file"`
+	CAGenFile   string `yaml:"ca_gen"`
+	CertGenFile string `yaml:"cert_gen"`
 }
 
 // LoadConfig
@@ -87,6 +99,12 @@ func LoadConfig(envPath string, configPath string) (*Config, error) {
 	}
 
 	config.Database.Host = GetDBConnectionHost()
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	config.TLS.TLSDir = filepath.Join(homeDir, config.TLS.TLSDir)
 
 	return &config, nil
 }

@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"proxy_server/internal/config"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/proxy"
 	"proxy_server/internal/proxy/handlers"
+	"proxy_server/internal/proxytls"
 	"proxy_server/internal/service"
 	"proxy_server/internal/storage"
 	"proxy_server/internal/storage/postgresql"
@@ -35,6 +37,12 @@ func main() {
 	}
 	logger.Info("Logger configured")
 
+	ca, err := proxytls.LoadCA(config.TLS, &logger)
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	logger.Info("TLS CA loaded")
+
 	dbConnection, err := postgresql.GetDBConnection(*config.Database)
 	if err != nil {
 		logger.Fatal(err.Error())
@@ -48,7 +56,8 @@ func main() {
 	services := service.NewServices(storages)
 	logger.Info("Services configured")
 
-	handlers := handlers.NewHandlers(services)
+	certPath := filepath.Join(config.TLS.TLSDir, config.TLS.CertDir)
+	handlers := handlers.NewHandlers(services, ca, certPath)
 	logger.Info("Handlers configured")
 
 	mux, err := proxy.GetChiMux(*handlers, *config, &logger)

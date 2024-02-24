@@ -1,14 +1,17 @@
 package handlers
 
 import (
+	"crypto/tls"
 	"net/http"
 	"proxy_server/internal/service"
 )
 
 type HTTPSHandler struct {
-	client http.Client
-	reqs   service.IRequestService
-	resps  service.IResponseService
+	client   http.Client
+	ca       tls.Certificate
+	certPath string
+	reqs     service.IRequestService
+	resps    service.IResponseService
 }
 
 func (h HTTPSHandler) GetRequestService() service.IRequestService {
