@@ -13,7 +13,7 @@ RUN go mod download
 COPY ./. ./
 
 # Build the binary to copy it to the slim image
-RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/app/api.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api/api.go
 
 
 FROM alpine:latest AS build-release-stage
@@ -29,6 +29,8 @@ RUN adduser --system nonroot --ingroup nonroot
 COPY --from=build-stage ./app/db ./db
 COPY --from=build-stage ./go/bin/tern ./tern
 COPY --from=build-stage ./app/api ./api
+COPY --from=build-stage ./app/config/.env ./config/.env
+COPY --from=build-stage ./app/config/config.yml ./config/config.yml
 
 EXPOSE 8080
 EXPOSE 5432
