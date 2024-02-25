@@ -11,6 +11,7 @@ import (
 	proxytls "proxy_server/internal/proxy/tls"
 	"proxy_server/internal/service"
 	"proxy_server/internal/utils"
+	"time"
 
 	chimw "github.com/go-chi/chi/v5/middleware"
 )
@@ -51,7 +52,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.DebugFmt("Connection hijacked", requestID, funcName, nodeName)
 
-	_, err = conn.Write([]byte("HTTP/1.0 200 Connection established"))
+	_, err = conn.Write([]byte("HTTP/1.1 200 OK\n\n"))
 	if err != nil {
 		logger.Error("Failed to return 200 on CONNECT: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
@@ -69,10 +70,12 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tlsConfig := &tls.Config{
 		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
-		MinVersion:       tls.VersionTLS13,
+		MinVersion:       tls.VersionTLS12,
 		Certificates:     []tls.Certificate{tlsCert},
 	}
 	tlsConn := tls.Server(conn, tlsConfig)
+	tlsConn.SetDeadline(time.Now().Add(15 * time.Second))
+	logger.DebugFmt("Server initialized", requestID, funcName, nodeName)
 	defer tlsConn.Close()
 
 	err = tlsConn.Handshake()
@@ -87,6 +90,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.RequestURI = ""
 
 	tlsConnReader := bufio.NewReader(tlsConn)
+	logger.DebugFmt("Reader created for TLS connection", requestID, funcName, nodeName)
 	tlsRequest, err := http.ReadRequest(tlsConnReader)
 	if err == io.EOF {
 		return
@@ -95,6 +99,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
 		return
 	}
+	logger.DebugFmt("Finished reading request", requestID, funcName, nodeName)
 
 	reqBody, _ := io.ReadAll(r.Body)
 	tlsRequest.Body = io.NopCloser(bytes.NewReader(reqBody))

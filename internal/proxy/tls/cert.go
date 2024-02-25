@@ -15,6 +15,8 @@ import (
 func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls.Certificate, error) {
 	certFileName := host + ".crt"
 	certFilePath := filepath.Join(config.CertDir, certFileName)
+	keyFileName := host + ".key"
+	keyFilePath := filepath.Join(config.KeyDir, keyFileName)
 	certificate := tls.Certificate{}
 
 	if _, err := os.Stat(certFilePath); os.IsNotExist(err) {
@@ -26,8 +28,9 @@ func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls
 			return certificate, err
 		}
 		genCmd := exec.Command("/bin/sh", filepath.Join(config.TLSDir, config.CertGenScript),
-			config.CertKeyFile, config.CACertFile, config.CAKeyFile,
-			certFilePath, host, fmt.Sprint(binary.LittleEndian.Uint64(serial)))
+			config.CACertFile, config.CAKeyFile, config.CRLFile,
+			certFilePath, keyFilePath,
+			host, fmt.Sprint(binary.LittleEndian.Uint64(serial)))
 		genCmd.Dir = config.TLSDir
 		logger.Debug(fmt.Sprintf("Command to run: %v", genCmd))
 		if err := genCmd.Run(); err != nil {
@@ -41,7 +44,7 @@ func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls
 		return certificate, err
 	}
 
-	keyF, err := os.ReadFile(config.CertKeyFile)
+	keyF, err := os.ReadFile(keyFilePath)
 	if err != nil {
 		logger.Error("Failed reading private key")
 		return certificate, err
