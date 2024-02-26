@@ -58,3 +58,11 @@ func NewHTTPSHandler(reqs service.IRequestService, resps service.IResponseServic
 		resps: resps,
 	}
 }
+
+func (h Handlers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodConnect {
+		h.Https.ServeHTTP(w, r)
+	} else {
+		h.Http.ServeHTTP(w, r)
+	}
+}

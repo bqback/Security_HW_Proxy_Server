@@ -46,6 +46,9 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	logger.DebugFmt("Got response", requestID, funcName, nodeName)
 
+	rawResponseBody, _ := io.ReadAll(response.Body)
+	response.Body = io.NopCloser(bytes.NewReader(rawResponseBody))
+
 	reqObj, err := requestToObj(r, logger)
 	if err != nil {
 		logger.Error("Failed to parse request into object: " + err.Error())
@@ -74,7 +77,7 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(respObj.Code)
 	copyHeaders(response, w)
-	_, err = io.Copy(w, bytes.NewReader([]byte(respObj.Body)))
+	_, err = io.Copy(w, bytes.NewReader(rawResponseBody))
 	if err != nil {
 		logger.Error("Failed to copy response body: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
