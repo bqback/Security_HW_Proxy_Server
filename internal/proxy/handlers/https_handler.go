@@ -37,6 +37,9 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	requestID := chimw.GetReqID(ctx)
 	funcName := "HTTPS Handler"
 
+	r.Header.Del("Proxy-Connection")
+	r.RequestURI = ""
+
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		logger.Error("Failed to cast connection to hijacker")
@@ -51,7 +54,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.DebugFmt("Connection hijacked", requestID, funcName, nodeName)
 
-	_, err = conn.Write([]byte("HTTP/1.0 200 Connection established"))
+	_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	if err != nil {
 		logger.Error("Failed to return 200 on CONNECT: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
@@ -69,7 +72,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tlsConfig := &tls.Config{
 		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
-		MinVersion:       tls.VersionTLS13,
+		MinVersion:       tls.VersionTLS12,
 		Certificates:     []tls.Certificate{tlsCert},
 	}
 	tlsConn := tls.Server(conn, tlsConfig)
@@ -83,9 +86,6 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.DebugFmt("Handshake done", requestID, funcName, nodeName)
 
-	r.Header.Del("Proxy-Connection")
-	r.RequestURI = ""
-
 	tlsConnReader := bufio.NewReader(tlsConn)
 	tlsRequest, err := http.ReadRequest(tlsConnReader)
 	if err == io.EOF {
@@ -98,6 +98,13 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	reqBody, _ := io.ReadAll(r.Body)
 	tlsRequest.Body = io.NopCloser(bytes.NewReader(reqBody))
+
+	err = setTarget(tlsRequest, r.Host)
+	if err != nil {
+		logger.Error("Failed to modify request: " + err.Error())
+		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
+	}
 
 	response, err := http.DefaultClient.Do(tlsRequest)
 	if err != nil {
@@ -133,6 +140,8 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
 		return
 	}
+
+	response.Body = io.NopCloser(bytes.NewReader([]byte(respObj.Body)))
 
 	err = response.Write(tlsConn)
 	if err != nil {

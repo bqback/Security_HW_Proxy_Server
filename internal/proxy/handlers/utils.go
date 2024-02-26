@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"io"
 	"net/http"
+	"net/url"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/pkg/dto"
 )
@@ -15,6 +16,20 @@ func copyHeaders(source *http.Response, target http.ResponseWriter) {
 			target.Header().Add(headerKey, headerValue)
 		}
 	}
+}
+
+func setTarget(request *http.Request, target string) error {
+	url := url.URL{
+		Scheme:   "https",
+		Host:     target,
+		Path:     request.URL.Path,
+		RawQuery: request.URL.RawQuery,
+	}
+
+	request.URL = &url
+	request.RequestURI = ""
+
+	return nil
 }
 
 func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRequest, error) {
@@ -60,7 +75,6 @@ func responseToObj(response *http.Response, logger logging.ILogger) (dto.Incomin
 		logger.Error("Failed to read response body")
 		return obj, err
 	}
-	defer response.Body.Close()
 
 	if !response.Uncompressed || (response.Header.Get("Content-Encoding") == "gzip") {
 		gzipReader, err := gzip.NewReader(bytes.NewReader(rawBody))
