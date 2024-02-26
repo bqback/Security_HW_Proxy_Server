@@ -15,21 +15,25 @@ import (
 func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls.Certificate, error) {
 	certFileName := host + ".crt"
 	certFilePath := filepath.Join(config.CertDir, certFileName)
+	keyFileName := host + ".key"
+	keyFilePath := filepath.Join(config.KeyDir, keyFileName)
 	certificate := tls.Certificate{}
 
 	if _, err := os.Stat(certFilePath); os.IsNotExist(err) {
 		logger.Debug("Generating certificate")
-		serial := make([]byte, 64)
-		_, err = rand.Read(serial)
+
+		serial, err := genSerial()
 		if err != nil {
-			logger.Error("Error generating serial for the certificate")
+			logger.Error("Failed generating a serial for the certificate")
 			return certificate, err
 		}
-		genCmd := exec.Command("/bin/sh", filepath.Join(config.TLSDir, config.CertGenScript),
-			config.CertKeyFile, config.CACertFile, config.CAKeyFile,
-			certFilePath, host, fmt.Sprint(binary.LittleEndian.Uint64(serial)))
-		genCmd.Dir = config.TLSDir
+
+		genCmd := exec.Command("/bin/sh", config.CertGenScript,
+			config.CACertFile, config.CAKeyFile,
+			certFilePath, keyFilePath,
+			host, fmt.Sprint(serial))
 		logger.Debug(fmt.Sprintf("Command to run: %v", genCmd))
+
 		if err := genCmd.Run(); err != nil {
 			return certificate, err
 		}
@@ -41,7 +45,7 @@ func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls
 		return certificate, err
 	}
 
-	keyF, err := os.ReadFile(config.CertKeyFile)
+	keyF, err := os.ReadFile(keyFilePath)
 	if err != nil {
 		logger.Error("Failed reading private key")
 		return certificate, err
@@ -54,4 +58,14 @@ func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls
 	}
 
 	return certificate, nil
+}
+
+func genSerial() (uint64, error) {
+	serial := make([]byte, 64)
+	_, err := rand.Read(serial)
+	if err != nil {
+		return 0, err
+	}
+
+	return binary.LittleEndian.Uint64(serial), nil
 }

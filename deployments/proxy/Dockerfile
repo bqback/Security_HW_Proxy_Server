@@ -33,10 +33,12 @@ COPY --from=build-stage ./go/bin/tern ./tern
 COPY --from=build-stage ./app/proxy ./proxy
 COPY --from=build-stage ./app/config/.env ./config/.env
 COPY --from=build-stage ./app/config/config.yml ./config/config.yml
-COPY --from=build-stage ./app/scripts/gen_ca.sh /home/nonroot/.tls/gen_ca.sh
 COPY --from=build-stage ./app/scripts/gen_cert.sh /home/nonroot/.tls/gen_cert.sh
+COPY --from=build-stage ./app/proxy-serv-ca.crt ./app/proxy-serv-ca.key /home/nonroot/.tls/
 
-RUN cd /home/nonroot/.tls && sh gen_ca.sh && cp ca.crt /usr/local/share/ca-certificates/ca.crt && update-ca-certificates
+RUN cd /home/nonroot/.tls && \
+        cp proxy-serv-ca.crt /usr/local/share/ca-certificates/proxy-serv-ca.crt && update-ca-certificates && \
+        mkdir certs && mkdir keys
 
 RUN chown -R nonroot /home/nonroot
 

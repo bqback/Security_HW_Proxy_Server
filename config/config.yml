@@ -30,9 +30,8 @@ logging:
 tls:
   dir: ".tls"
   cert_dir: "certs"
+  key_dir: "keys"
   age_years: 10
-  ca_key: "ca.key"
-  ca_gen: "gen_ca.sh"
-  ca_cert: "ca.crt"
-  cert_key: "cert.key"
+  ca_key: "proxy-serv-ca.key"
+  ca_cert: "proxy-serv-ca.crt"
   cert_gen: "gen_cert.sh"
