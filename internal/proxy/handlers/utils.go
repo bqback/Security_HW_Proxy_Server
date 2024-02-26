@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/pkg/dto"
+
+	"github.com/andybalholm/brotli"
 )
 
 func copyHeaders(source *http.Response, target http.ResponseWriter) {
@@ -76,18 +78,31 @@ func responseToObj(response *http.Response, logger logging.ILogger) (dto.Incomin
 		return obj, err
 	}
 
-	if !response.Uncompressed || (response.Header.Get("Content-Encoding") == "gzip") {
-		gzipReader, err := gzip.NewReader(bytes.NewReader(rawBody))
-		if err != nil {
-			logger.Error("Failed to create a gzip reader")
-			return obj, err
-		}
-		defer gzipReader.Close()
+	switch response.Header.Get("Content-Encoding") {
+	case "gzip":
+		{
+			gzipReader, err := gzip.NewReader(bytes.NewReader(rawBody))
+			if err != nil {
+				logger.Error("Failed to create a gzip reader")
+				return obj, err
+			}
+			defer gzipReader.Close()
 
-		rawBody, err = io.ReadAll(response.Body)
-		if err != nil {
-			logger.Error("Failed to read response body")
-			return obj, err
+			rawBody, err = io.ReadAll(gzipReader)
+			if err != nil {
+				logger.Error("Failed to read response body")
+				return obj, err
+			}
+		}
+	case "br":
+		{
+			brReader := brotli.NewReader(bytes.NewReader(rawBody))
+
+			rawBody, err = io.ReadAll(brReader)
+			if err != nil {
+				logger.Error("Failed to read response body")
+				return obj, err
+			}
 		}
 	}
 
