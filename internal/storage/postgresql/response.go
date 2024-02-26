@@ -24,7 +24,7 @@ func NewResponseStorage(db *sql.DB) *PgResponseStorage {
 }
 
 func (s PgResponseStorage) StoreResponse(ctx context.Context, response *dto.IncomingResponse, reqID *dto.RequestID) error {
-	funcName := "StoreRequest"
+	funcName := "StoreResponse"
 	logger := *utils.GetReqLogger(ctx)
 	if logger == nil {
 		return apperrors.ErrLoggerMissingFromContext

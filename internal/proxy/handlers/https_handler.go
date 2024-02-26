@@ -152,5 +152,6 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error("Failed to return response to client: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
 	}
 }

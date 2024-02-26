@@ -24,9 +24,18 @@ var (
 	ErrCouldNotCommit           = errors.New("failed to commit DB transaction changes")
 )
 
+var (
+	ErrCouldNotGetRequest = errors.New("could not get request from DB")
+)
+
 type ErrorResponse struct {
 	Code    int
 	Message string
+}
+
+var BadRequestResponse = ErrorResponse{
+	Code:    http.StatusBadRequest,
+	Message: "Bad request",
 }
 
 var InternalServerErrorResponse = ErrorResponse{

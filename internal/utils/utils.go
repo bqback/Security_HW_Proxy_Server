@@ -15,3 +15,13 @@ func GetReqLogger(ctx context.Context) *logging.ILogger {
 	}
 	return nil
 }
+
+func GetReqID(ctx context.Context) *dto.RequestID {
+	if ctx == nil {
+		return nil
+	}
+	if id, ok := ctx.Value(dto.RequestIDKey).(uint64); ok {
+		return &dto.RequestID{Value: id}
+	}
+	return nil
+}
