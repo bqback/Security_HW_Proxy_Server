@@ -21,9 +21,23 @@ func GetChiMux(manager handlers.Handlers, config config.Config, logger logging.I
 	mux.Use(middleware.PanicRecovery)
 	// mux.Use(middleware.JsonHeader)
 
-	mux.Route("/requests", func(r chi.Router) {
-		r.Get("/", manager.RequestHandler.GetAllRequests)
-		r.Get("/{id}", manager.RequestHandler.GetSingleRequest)
+	mux.Route("/", func(r chi.Router) {
+		r.Route("/request", func(r chi.Router) {
+			r.Get("/", manager.RequestHandler.GetAllRequests)
+			r.Route("/{requestID}", func(r chi.Router) {
+				r.Use(middleware.ExtractID)
+				r.Get("/", manager.RequestHandler.GetSingleRequest)
+			})
+		})
+		r.Route("/repeat/{requestID}", func(r chi.Router) {
+			r.Use(middleware.ExtractID)
+			r.Get("/", manager.RepeatHandler.RepeatRequest)
+		})
+		r.Route("/scan/{requestID}", func(r chi.Router) {
+			r.Use(middleware.ExtractID)
+			r.Get("/", manager.ScanHandler.ScanRequest)
+		})
 	})
+
 	return mux, nil
 }
