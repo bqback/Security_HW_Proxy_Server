@@ -114,8 +114,10 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.DebugFmt("Got response", requestID, funcName, nodeName)
+	respBody, _ := io.ReadAll(response.Body)
+	response.Body = io.NopCloser(bytes.NewReader(respBody))
 
-	reqObj, err := requestToObj(r, logger)
+	reqObj, err := requestToObj(tlsRequest, logger)
 	if err != nil {
 		logger.Error("Failed to parse request into object: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
@@ -128,9 +130,12 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rawResponseBody, _ := io.ReadAll(response.Body)
+	response.Body = io.NopCloser(bytes.NewReader(rawResponseBody))
+
 	respObj, err := responseToObj(response, logger)
 	if err != nil {
-		logger.Error("Failed to parse request into object: " + err.Error())
+		logger.Error("Failed to parse response into object: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
 		return
 	}
@@ -141,7 +146,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Body = io.NopCloser(bytes.NewReader([]byte(respObj.Body)))
+	response.Body = io.NopCloser(bytes.NewReader([]byte(rawResponseBody)))
 
 	err = response.Write(tlsConn)
 	if err != nil {
