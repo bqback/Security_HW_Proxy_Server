@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -32,8 +31,6 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := *utils.GetReqLogger(ctx)
 	requestID := chimw.GetReqID(ctx)
 	funcName := "HTTP Handler"
-
-	log.Println("Original", r)
 
 	r.Header.Del("Proxy-Connection")
 	r.RequestURI = ""
