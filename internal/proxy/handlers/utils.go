@@ -24,7 +24,7 @@ func copyHeaders(source *http.Response, target http.ResponseWriter) {
 func parseValues(urlValues url.Values) map[string][]string {
 	result := map[string][]string{}
 	for key, values := range urlValues {
-		result[key] = append(result[key], values...)
+		result[key] = values
 	}
 
 	return result
@@ -33,7 +33,7 @@ func parseValues(urlValues url.Values) map[string][]string {
 func parseHeaders(headers http.Header) map[string][]string {
 	result := map[string][]string{}
 	for headerKey, values := range headers {
-		result[headerKey] = append(result[headerKey], values...)
+		result[headerKey] = values
 	}
 
 	return result
@@ -54,6 +54,7 @@ func setTarget(request *http.Request, target string) error {
 		Host:     target,
 		Path:     request.URL.Path,
 		RawQuery: request.URL.RawQuery,
+		Fragment: request.URL.Fragment,
 	}
 
 	request.URL = &url
