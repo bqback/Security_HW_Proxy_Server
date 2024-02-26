@@ -14,13 +14,15 @@ type IncomingRequest struct {
 	Headers    http.Header
 	Cookies    []*http.Cookie
 	PostParams url.Values
+	Body       string
 }
 
 type IncomingResponse struct {
-	Code    int
-	Message string
-	Headers http.Header
-	Body    string
+	Code     int
+	Message  string
+	Headers  http.Header
+	RawBody  []byte
+	TextBody string
 }
 
 type RequestID struct {

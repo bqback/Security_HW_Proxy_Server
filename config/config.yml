@@ -26,3 +26,12 @@ logging:
   level_based_report: true
   report_caller: true
   disable_level_truncation: true
+
+tls:
+  dir: ".tls"
+  cert_dir: "certs"
+  key_dir: "keys"
+  age_years: 10
+  ca_key: "proxy-serv-ca.key"
+  ca_cert: "proxy-serv-ca.crt"
+  cert_gen: "gen_cert.sh"

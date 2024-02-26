@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"proxy_server/internal/apperrors"
 
 	"github.com/joho/godotenv"
@@ -15,6 +16,7 @@ type Config struct {
 	Proxy    *ProxyConfig    `yaml:"proxy"`
 	Database *DatabaseConfig `yaml:"db"`
 	Logging  *LoggingConfig  `yaml:"logging"`
+	TLS      *TLSConfig      `yaml:"tls"`
 }
 
 type APIConfig struct {
@@ -45,6 +47,16 @@ type LoggingConfig struct {
 	DisableLevelTruncation bool   `yaml:"disable_level_truncation"`
 	LevelBasedReport       bool   `yaml:"level_based_report"`
 	ReportCaller           bool   `yaml:"report_caller"`
+}
+
+type TLSConfig struct {
+	TLSDir        string `yaml:"dir"`
+	CertDir       string `yaml:"cert_dir"`
+	KeyDir        string `yaml:"key_dir"`
+	AgeYears      uint   `yaml:"age_years"`
+	CAKeyFile     string `yaml:"ca_key"`
+	CACertFile    string `yaml:"ca_cert"`
+	CertGenScript string `yaml:"cert_gen"`
 }
 
 // LoadConfig
@@ -87,6 +99,17 @@ func LoadConfig(envPath string, configPath string) (*Config, error) {
 	}
 
 	config.Database.Host = GetDBConnectionHost()
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	config.TLS.TLSDir = filepath.Join(homeDir, config.TLS.TLSDir)
+	config.TLS.CertDir = filepath.Join(config.TLS.TLSDir, config.TLS.CertDir)
+	config.TLS.KeyDir = filepath.Join(config.TLS.TLSDir, config.TLS.KeyDir)
+	config.TLS.CACertFile = filepath.Join(config.TLS.TLSDir, config.TLS.CACertFile)
+	config.TLS.CAKeyFile = filepath.Join(config.TLS.TLSDir, config.TLS.CAKeyFile)
+	config.TLS.CertGenScript = filepath.Join(config.TLS.TLSDir, config.TLS.CertGenScript)
 
 	return &config, nil
 }

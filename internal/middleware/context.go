@@ -18,8 +18,6 @@ func SetContext(logger logging.ILogger) func(http.Handler) http.Handler {
 
 			funcName := "SetLogger"
 
-			logger.Info(r.URL.Path)
-
 			rCtx := context.WithValue(r.Context(), dto.LoggerKey, logger)
 			logger.DebugFmt("Added logger to context", chimw.GetReqID(rCtx), funcName, nodeName)
 

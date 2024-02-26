@@ -79,7 +79,7 @@ jobs:
           context: .
           file: ./deployments/API/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/Proxy-Server-API:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mitm-proxy-api:latest
 
       - name: Build proxy and push
         uses: docker/build-push-action@v5
@@ -87,4 +87,4 @@ jobs:
           context: .
           file: ./deployments/proxy/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/Proxy-Server-Proxy:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mitm-proxy-proxy:latest
