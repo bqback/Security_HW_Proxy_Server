@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS public."response"
     code int NOT NULL,
     message text NOT NULL,
     headers jsonb,
-    body text,
+    body_raw bytea,
+    body_text text,
     CONSTRAINT response_pkey PRIMARY KEY (id)
 )
 

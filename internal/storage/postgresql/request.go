@@ -3,7 +3,6 @@ package postgresql
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"proxy_server/internal/apperrors"
 	"proxy_server/internal/pkg/dto"
 	"proxy_server/internal/pkg/entities"
@@ -42,7 +41,7 @@ func (s PgRequestStorage) StoreRequest(ctx context.Context, request *dto.Incomin
 		logger.DebugFmt("Failed to build query with error "+err.Error(), requestID, funcName, nodeName)
 		return nil, apperrors.ErrCouldNotBuildQuery
 	}
-	logger.DebugFmt("Built query\n\t"+sql+"\nwith args\n\t"+fmt.Sprintf("%+v", args), requestID, funcName, nodeName)
+	// logger.DebugFmt("Built query\n\t"+sql+"\nwith args\n\t"+fmt.Sprintf("%+v", args), requestID, funcName, nodeName)
 
 	result := dto.RequestID{}
 

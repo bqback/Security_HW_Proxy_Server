@@ -18,10 +18,11 @@ type IncomingRequest struct {
 }
 
 type IncomingResponse struct {
-	Code    int
-	Message string
-	Headers http.Header
-	Body    string
+	Code     int
+	Message  string
+	Headers  http.Header
+	RawBody  []byte
+	TextBody string
 }
 
 type RequestID struct {

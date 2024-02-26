@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/pkg/dto"
+	"strings"
 
 	"github.com/andybalholm/brotli"
 )
@@ -32,6 +33,15 @@ func setTarget(request *http.Request, target string) error {
 	request.RequestURI = ""
 
 	return nil
+}
+
+func checkType(header string) string {
+	if strings.HasPrefix(header, "text/") ||
+		(strings.HasPrefix(header, "application/") && !strings.HasSuffix(header, "octet-stream")) {
+		return "text"
+	} else {
+		return "file"
+	}
 }
 
 func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRequest, error) {
@@ -109,7 +119,14 @@ func responseToObj(response *http.Response, logger logging.ILogger) (dto.Incomin
 	obj.Code = response.StatusCode
 	obj.Message = http.StatusText(response.StatusCode)
 	obj.Headers = response.Header
-	obj.Body = string(rawBody)
+
+	switch checkType(response.Header.Get("Content-Type")) {
+	case "text":
+		obj.RawBody = rawBody
+		obj.TextBody = string(rawBody)
+	case "file":
+		obj.RawBody = rawBody
+	}
 
 	return obj, nil
 }
