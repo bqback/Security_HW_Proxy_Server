@@ -25,12 +25,15 @@ func (m SliceMap) Value() (driver.Value, error) {
 }
 
 func (m *SliceMap) Scan(value interface{}) error {
-	b, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
+	switch value := value.(type) {
+	case []byte:
+		return json.Unmarshal(value, &m)
+	case nil:
+		m = &SliceMap{}
+		return nil
+	default:
+		return errors.New("failed asserting value type")
 	}
-
-	return json.Unmarshal(b, &m)
 }
 
 type StringMap map[string]string
@@ -40,12 +43,15 @@ func (m StringMap) Value() (driver.Value, error) {
 }
 
 func (m *StringMap) Scan(value interface{}) error {
-	b, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
+	switch value := value.(type) {
+	case []byte:
+		return json.Unmarshal(value, &m)
+	case nil:
+		m = &StringMap{}
+		return nil
+	default:
+		return errors.New("failed asserting value type")
 	}
-
-	return json.Unmarshal(b, &m)
 }
 
 type IncomingResponse struct {

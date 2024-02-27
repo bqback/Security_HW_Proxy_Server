@@ -34,6 +34,7 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 	logger.Info("Logger configured")
+	logger.Debug(config.Proxy.URL.String())
 
 	dbConnection, err := postgresql.GetDBConnection(*config.Database)
 	if err != nil {
@@ -48,7 +49,7 @@ func main() {
 	services := service.NewServices(storages)
 	logger.Info("Services configured")
 
-	handlers := handlers.NewHandlers(services)
+	handlers := handlers.NewHandlers(services, config)
 	logger.Info("Handlers configured")
 
 	mux, err := api.GetChiMux(*handlers, *config, &logger)

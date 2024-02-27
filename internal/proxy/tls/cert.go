@@ -29,7 +29,7 @@ func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls
 		}
 
 		genCmd := exec.Command("/bin/sh", config.CertGenScript,
-			config.CACertFile, config.CAKeyFile,
+			config.CACertFile, config.CAKeyFile, config.X509Config,
 			certFilePath, keyFilePath,
 			host, fmt.Sprint(serial))
 		logger.Debug(fmt.Sprintf("Command to run: %v", genCmd))

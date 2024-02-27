@@ -2,15 +2,13 @@ package handlers
 
 import (
 	"bytes"
-	"compress/gzip"
 	"io"
 	"net/http"
 	"net/url"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/pkg/dto"
+	"proxy_server/internal/utils"
 	"strings"
-
-	"github.com/andybalholm/brotli"
 )
 
 func copyHeaders(source *http.Response, target http.ResponseWriter) {
@@ -89,6 +87,8 @@ func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRe
 			logger.Error("Failed to parse form")
 			return obj, err
 		}
+
+		obj.PostParams = parseValues(request.PostForm)
 	}
 
 	cookies := request.Cookies()
@@ -101,7 +101,6 @@ func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRe
 	obj.GetParams = parseValues(request.URL.Query())
 	obj.Headers = parseHeaders(request.Header)
 	obj.Cookies = parseCookies(cookies)
-	obj.PostParams = parseValues(request.URL.Query())
 
 	switch checkType(request.Header.Get("Content-Type")) {
 	case "text":
@@ -117,38 +116,10 @@ func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRe
 func responseToObj(response *http.Response, logger logging.ILogger) (dto.IncomingResponse, error) {
 	obj := dto.IncomingResponse{}
 
-	rawBody, err := io.ReadAll(response.Body)
+	decodedBody, err := utils.DecodeResponse(response)
 	if err != nil {
-		logger.Error("Failed to read response body")
+		logger.Error("Failed to decode response")
 		return obj, err
-	}
-
-	switch response.Header.Get("Content-Encoding") {
-	case "gzip":
-		{
-			gzipReader, err := gzip.NewReader(bytes.NewReader(rawBody))
-			if err != nil {
-				logger.Error("Failed to create a gzip reader")
-				return obj, err
-			}
-			defer gzipReader.Close()
-
-			rawBody, err = io.ReadAll(gzipReader)
-			if err != nil {
-				logger.Error("Failed to read response body")
-				return obj, err
-			}
-		}
-	case "br":
-		{
-			brReader := brotli.NewReader(bytes.NewReader(rawBody))
-
-			rawBody, err = io.ReadAll(brReader)
-			if err != nil {
-				logger.Error("Failed to read response body")
-				return obj, err
-			}
-		}
 	}
 
 	obj.Code = response.StatusCode
@@ -157,10 +128,10 @@ func responseToObj(response *http.Response, logger logging.ILogger) (dto.Incomin
 
 	switch checkType(response.Header.Get("Content-Type")) {
 	case "text":
-		obj.RawBody = rawBody
-		obj.TextBody = string(rawBody)
+		obj.RawBody = decodedBody
+		obj.TextBody = string(decodedBody)
 	case "file":
-		obj.RawBody = rawBody
+		obj.RawBody = decodedBody
 	}
 
 	return obj, nil

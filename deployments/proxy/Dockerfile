@@ -33,7 +33,7 @@ COPY --from=build-stage ./go/bin/tern ./tern
 COPY --from=build-stage ./app/proxy ./proxy
 COPY --from=build-stage ./app/config/.env ./config/.env
 COPY --from=build-stage ./app/config/config.yml ./config/config.yml
-COPY --from=build-stage ./app/scripts/gen_cert.sh /home/nonroot/.tls/gen_cert.sh
+COPY --from=build-stage ./app/scripts/gen_cert.sh ./app/scripts/x509.conf /home/nonroot/.tls/
 COPY --from=build-stage ./app/proxy-serv-ca.crt ./app/proxy-serv-ca.key /home/nonroot/.tls/
 
 RUN cd /home/nonroot/.tls && \

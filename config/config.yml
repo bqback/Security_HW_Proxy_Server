@@ -2,11 +2,11 @@
 
 api:
   port: 8000
-  host: localhost
+  host: api
 
 proxy:
   port: 8080
-  host: localhost
+  host: proxy
 
 db:
   user: postgres
@@ -32,6 +32,7 @@ tls:
   cert_dir: "certs"
   key_dir: "keys"
   age_years: 10
+  x509_config: "x509.conf"
   ca_key: "proxy-serv-ca.key"
   ca_cert: "proxy-serv-ca.crt"
   cert_gen: "gen_cert.sh"

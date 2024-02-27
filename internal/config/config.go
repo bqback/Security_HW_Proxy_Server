@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"proxy_server/internal/apperrors"
@@ -25,8 +27,9 @@ type APIConfig struct {
 }
 
 type ProxyConfig struct {
-	Port uint   `yaml:"port"`
-	Host string `yaml:"host"`
+	Port uint     `yaml:"port"`
+	Host string   `yaml:"host"`
+	URL  *url.URL `yaml:"-"`
 }
 
 type DatabaseConfig struct {
@@ -54,6 +57,7 @@ type TLSConfig struct {
 	CertDir       string `yaml:"cert_dir"`
 	KeyDir        string `yaml:"key_dir"`
 	AgeYears      uint   `yaml:"age_years"`
+	X509Config    string `yaml:"x509_config"`
 	CAKeyFile     string `yaml:"ca_key"`
 	CACertFile    string `yaml:"ca_cert"`
 	CertGenScript string `yaml:"cert_gen"`
@@ -107,9 +111,16 @@ func LoadConfig(envPath string, configPath string) (*Config, error) {
 	config.TLS.TLSDir = filepath.Join(homeDir, config.TLS.TLSDir)
 	config.TLS.CertDir = filepath.Join(config.TLS.TLSDir, config.TLS.CertDir)
 	config.TLS.KeyDir = filepath.Join(config.TLS.TLSDir, config.TLS.KeyDir)
+	config.TLS.X509Config = filepath.Join(config.TLS.TLSDir, config.TLS.X509Config)
 	config.TLS.CACertFile = filepath.Join(config.TLS.TLSDir, config.TLS.CACertFile)
 	config.TLS.CAKeyFile = filepath.Join(config.TLS.TLSDir, config.TLS.CAKeyFile)
 	config.TLS.CertGenScript = filepath.Join(config.TLS.TLSDir, config.TLS.CertGenScript)
+
+	proxyURL, err := url.Parse("http://" + config.Proxy.Host + ":" + fmt.Sprint(config.Proxy.Port))
+	if err != nil {
+		return nil, err
+	}
+	config.Proxy.URL = proxyURL
 
 	return &config, nil
 }
