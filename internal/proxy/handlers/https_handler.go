@@ -39,14 +39,6 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	r.Header.Del("Proxy-Connection")
 	r.RequestURI = ""
-	// r.GetBody = func() (io.ReadCloser, error) {
-	// 	bodyContent, err := io.ReadAll(r.Body)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	r.Body = io.NopCloser(bytes.NewReader(bodyContent))
-	// 	return io.NopCloser(bytes.NewReader(bodyContent)), nil
-	// }
 
 	rBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -59,13 +51,6 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.Body = io.NopCloser(bytes.NewReader(rBody))
-
-	// reqBody, err := r.GetBody()
-	// if err != nil {
-	// 	logger.Error("Error cloning body: " + err.Error())
-	// 	apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
-	// 	return
-	// }
 
 	hj, ok := w.(http.Hijacker)
 	if !ok {
@@ -128,10 +113,6 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reqBody, _ := io.ReadAll(tlsRequest.Body)
 	tlsRequest.Body = io.NopCloser(bytes.NewReader(reqBody))
 
-	// tlsRequest.Body = reqBody
-	// tlsRequest.GetBody = r.GetBody
-	// logger.DebugFmt("TLS request body set", requestID, funcName, nodeName)
-
 	err = setTarget(tlsRequest, r.Host)
 	if err != nil {
 		logger.Error("Failed to modify request: " + err.Error())
@@ -141,7 +122,6 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.DebugFmt("TLS request target set", requestID, funcName, nodeName)
 
 	response, err := h.client.Do(tlsRequest)
-	// response, err := http.DefaultClient.Do(tlsRequest)
 	if err != nil {
 		logger.Error("Failed to send request to server: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
@@ -180,11 +160,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// tlsRequest.Body = io.NopCloser(bytes.NewReader(reqBody))
 	response.Body = io.NopCloser(bytes.NewReader(respBody))
-
-	// r.Body = reqBody
-	// tlsRequest.Body = reqBody
 
 	err = response.Write(tlsConn)
 	if err != nil {

@@ -42,7 +42,6 @@ func (s PgResponseStorage) StoreResponse(ctx context.Context, response *dto.Inco
 		logger.DebugFmt("Failed to build query with error "+err.Error(), requestID, funcName, nodeName)
 		return apperrors.ErrCouldNotBuildQuery
 	}
-	// logger.DebugFmt("Built response query\n\t"+respQuery+"\nwith args\n\t"+fmt.Sprintf("%+v", args), requestID, funcName, nodeName)
 
 	result := dto.ResponseID{}
 

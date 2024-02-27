@@ -58,7 +58,7 @@ func (s PgRequestStorage) StoreRequest(ctx context.Context, request *dto.Incomin
 }
 
 func (s PgRequestStorage) GetRequestByID(ctx context.Context, requestID *dto.RequestID) (*entities.Request, error) {
-	funcName := "GetAllRequests"
+	funcName := "GetRequestByID"
 	logger := *utils.GetReqLogger(ctx)
 	if logger == nil {
 		return nil, apperrors.ErrLoggerMissingFromContext
