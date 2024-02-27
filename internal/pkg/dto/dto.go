@@ -29,7 +29,6 @@ func (m *SliceMap) Scan(value interface{}) error {
 	case []byte:
 		return json.Unmarshal(value, &m)
 	case nil:
-		m = &SliceMap{}
 		return nil
 	default:
 		return errors.New("failed asserting value type")
@@ -47,7 +46,6 @@ func (m *StringMap) Scan(value interface{}) error {
 	case []byte:
 		return json.Unmarshal(value, &m)
 	case nil:
-		m = &StringMap{}
 		return nil
 	default:
 		return errors.New("failed asserting value type")

@@ -40,51 +40,51 @@ jobs:
       - name: Build the proxy binary
         run: go build -o proxy ./cmd/proxy/proxy.go
 
-  docker:
-    name: Docker build and publish
-    needs: composite-ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
-          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+  # docker:
+  #   name: Docker build and publish
+  #   needs: composite-ci
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+  #         fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
 
-      - name: Build .env file
-        uses: ./.github/actions/build-dot-env
-        with:
-          location: ./config/
-          migrator_pw: ${{ secrets.MIGRATOR_PASSWORD }}
-          postgres_user: ${{ secrets.POSTGRES_USER }}
-          postgres_pwd: ${{ secrets.POSTGRES_PASSWORD }}
-          postgres_table: ${{ secrets.POSTGRES_TABLE }}
-          postgres_host: ${{ secrets.POSTGRES_HOST }}
+  #     - name: Build .env file
+  #       uses: ./.github/actions/build-dot-env
+  #       with:
+  #         location: ./config/
+  #         migrator_pw: ${{ secrets.MIGRATOR_PASSWORD }}
+  #         postgres_user: ${{ secrets.POSTGRES_USER }}
+  #         postgres_pwd: ${{ secrets.POSTGRES_PASSWORD }}
+  #         postgres_table: ${{ secrets.POSTGRES_TABLE }}
+  #         postgres_host: ${{ secrets.POSTGRES_HOST }}
 
-      - name: Check .env file
-        run: cat ./config/.env
+  #     - name: Check .env file
+  #       run: cat ./config/.env
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
       
-      - name: Build API and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./deployments/API/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mitm-proxy-api:latest
+  #     - name: Build API and push
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         file: ./deployments/API/Dockerfile
+  #         push: true
+  #         tags: ${{ secrets.DOCKERHUB_USERNAME }}/mitm-proxy-api:latest
 
-      - name: Build proxy and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./deployments/proxy/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mitm-proxy-proxy:latest
+  #     - name: Build proxy and push
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         file: ./deployments/proxy/Dockerfile
+  #         push: true
+  #         tags: ${{ secrets.DOCKERHUB_USERNAME }}/mitm-proxy-proxy:latest

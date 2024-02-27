@@ -50,5 +50,10 @@ func (rh RepeatHandler) RepeatRequest(w http.ResponseWriter, r *http.Request) {
 
 	response.Body = io.NopCloser(bytes.NewReader(decodedBody))
 
-	response.Write(w)
+	err = response.Write(w)
+	if err != nil {
+		logger.Error("Failed to return response: " + err.Error())
+		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
+	}
 }

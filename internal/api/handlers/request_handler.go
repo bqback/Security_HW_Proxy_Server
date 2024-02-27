@@ -41,7 +41,12 @@ func (rh RequestHandler) GetAllRequests(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write(jsonResponse)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		logger.Error("Failed to return response: " + err.Error())
+		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
+	}
 	r.Body.Close()
 }
 
@@ -75,6 +80,11 @@ func (rh RequestHandler) GetSingleRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write(jsonResponse)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		logger.Error("Failed to return response: " + err.Error())
+		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
+	}
 	r.Body.Close()
 }
