@@ -25,7 +25,8 @@ var (
 )
 
 var (
-	ErrCouldNotGetRequest = errors.New("could not get request from DB")
+	ErrCouldNotGetRequest  = errors.New("could not get request from DB")
+	ErrCouldNotGetResponse = errors.New("could not get response from DB")
 )
 
 type ErrorResponse struct {

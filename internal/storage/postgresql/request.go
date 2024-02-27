@@ -42,7 +42,6 @@ func (s PgRequestStorage) StoreRequest(ctx context.Context, request *dto.Incomin
 		logger.DebugFmt("Failed to build query with error "+err.Error(), requestID, funcName, nodeName)
 		return nil, apperrors.ErrCouldNotBuildQuery
 	}
-	// logger.DebugFmt("Built query\n\t"+sql+"\nwith args\n\t"+fmt.Sprintf("%+v", args), requestID, funcName, nodeName)
 
 	result := dto.RequestID{}
 
@@ -95,7 +94,7 @@ func (s PgRequestStorage) GetRequestByID(ctx context.Context, requestID *dto.Req
 		return nil, apperrors.ErrCouldNotGetRequest
 	}
 
-	logger.DebugFmt("Collected task info rows", reqID, funcName, nodeName)
+	logger.DebugFmt("Collected request", reqID, funcName, nodeName)
 
 	return &request, nil
 }
@@ -145,7 +144,7 @@ func (s PgRequestStorage) GetAllRequests(ctx context.Context) (*[]entities.Reque
 		}
 		requests = append(requests, request)
 	}
-	logger.DebugFmt("Collected task info rows", requestID, funcName, nodeName)
+	logger.DebugFmt("Collected requests", requestID, funcName, nodeName)
 
 	return &requests, nil
 }
