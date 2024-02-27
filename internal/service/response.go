@@ -10,6 +10,4 @@ type IResponseService interface {
 	StoreResponse(context.Context, *dto.IncomingResponse, *dto.RequestID) error
 	GetResponseByRequestID(context.Context, *dto.RequestID) (*entities.Response, error)
 	GetResponseByResponseID(context.Context, *dto.ResponseID) (*entities.Response, error)
-	// GetAllRequests() (*[]entities.Request, error)
-	// GetSingleRequest(dto.RequestID) (*entities.Request, error)
 }

@@ -24,7 +24,7 @@ func NewResponseStorage(db *sql.DB) *PgResponseStorage {
 }
 
 func (s PgResponseStorage) StoreResponse(ctx context.Context, response *dto.IncomingResponse, reqID *dto.RequestID) error {
-	funcName := "StoreRequest"
+	funcName := "StoreResponse"
 	logger := *utils.GetReqLogger(ctx)
 	if logger == nil {
 		return apperrors.ErrLoggerMissingFromContext
@@ -42,7 +42,6 @@ func (s PgResponseStorage) StoreResponse(ctx context.Context, response *dto.Inco
 		logger.DebugFmt("Failed to build query with error "+err.Error(), requestID, funcName, nodeName)
 		return apperrors.ErrCouldNotBuildQuery
 	}
-	// logger.DebugFmt("Built response query\n\t"+respQuery+"\nwith args\n\t"+fmt.Sprintf("%+v", args), requestID, funcName, nodeName)
 
 	result := dto.ResponseID{}
 
@@ -101,9 +100,43 @@ func (s PgResponseStorage) StoreResponse(ctx context.Context, response *dto.Inco
 	return nil
 }
 
-func (s PgResponseStorage) GetResponseByRequestID(ctx context.Context, reqID *dto.RequestID) (*entities.Response, error) {
-	// TODO Implement
-	return nil, nil
+func (s PgResponseStorage) GetResponseByRequestID(ctx context.Context, requestID *dto.RequestID) (*entities.Response, error) {
+	funcName := "GetResponseByRequestID"
+	logger := *utils.GetReqLogger(ctx)
+	if logger == nil {
+		return nil, apperrors.ErrLoggerMissingFromContext
+	}
+	reqID := chimw.GetReqID(ctx)
+
+	sql, args, err := squirrel.Select(allResponseSelectFields...).
+		From("public.request_response").
+		Where(squirrel.Eq{"public.request_response.id_request": requestID.Value}).
+		LeftJoin("public.response ON public.response.id = public.request_response.id_response").
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, apperrors.ErrCouldNotBuildQuery
+	}
+
+	row := s.db.QueryRow(sql, args...)
+
+	response := entities.Response{}
+	err = row.Scan(
+		&response.ID,
+		&response.Code,
+		&response.Message,
+		&response.Headers,
+		&response.RawBody,
+		&response.TextBody,
+	)
+	if err != nil {
+		logger.Error("Parsing error: " + err.Error())
+		return nil, apperrors.ErrCouldNotGetResponse
+	}
+
+	logger.DebugFmt("Collected response", reqID, funcName, nodeName)
+
+	return &response, nil
 }
 
 func (s PgResponseStorage) GetResponseByResponseID(ctx context.Context, respID *dto.ResponseID) (*entities.Response, error) {

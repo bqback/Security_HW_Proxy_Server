@@ -5,12 +5,14 @@ CREATE TABLE IF NOT EXISTS public."request"
     scheme text NOT NULL, 
     host text NOT NULL,
     path text NOT NULL,
-    get jsonb,
-    headers jsonb,
-    cookies jsonb,
-    post jsonb,
+    get json,
+    headers json,
+    cookies json,
+    post json,
+    body_raw bytea,
+    body_text text,
     CONSTRAINT request_pkey PRIMARY KEY (id)
-)
+);
 
 ---- create above / drop below ----
 

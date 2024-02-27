@@ -2,15 +2,13 @@ package handlers
 
 import (
 	"bytes"
-	"compress/gzip"
 	"io"
 	"net/http"
 	"net/url"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/pkg/dto"
+	"proxy_server/internal/utils"
 	"strings"
-
-	"github.com/andybalholm/brotli"
 )
 
 func copyHeaders(source *http.Response, target http.ResponseWriter) {
@@ -21,12 +19,40 @@ func copyHeaders(source *http.Response, target http.ResponseWriter) {
 	}
 }
 
+func parseValues(urlValues url.Values) map[string][]string {
+	result := map[string][]string{}
+	for key, values := range urlValues {
+		result[key] = values
+	}
+
+	return result
+}
+
+func parseHeaders(headers http.Header) map[string][]string {
+	result := map[string][]string{}
+	for headerKey, values := range headers {
+		result[headerKey] = values
+	}
+
+	return result
+}
+
+func parseCookies(cookies []*http.Cookie) map[string]string {
+	result := map[string]string{}
+	for _, cookie := range cookies {
+		result[cookie.Name] = cookie.Value
+	}
+
+	return result
+}
+
 func setTarget(request *http.Request, target string) error {
 	url := url.URL{
 		Scheme:   "https",
 		Host:     target,
 		Path:     request.URL.Path,
 		RawQuery: request.URL.RawQuery,
+		Fragment: request.URL.Fragment,
 	}
 
 	request.URL = &url
@@ -61,6 +87,8 @@ func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRe
 			logger.Error("Failed to parse form")
 			return obj, err
 		}
+
+		obj.PostParams = parseValues(request.PostForm)
 	}
 
 	cookies := request.Cookies()
@@ -70,11 +98,17 @@ func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRe
 	obj.Path = request.URL.Path
 	obj.Scheme = request.URL.Scheme
 	obj.Host = request.URL.Host
-	obj.GetParams = request.URL.Query()
-	obj.Headers = request.Header
-	obj.Cookies = cookies
-	obj.PostParams = request.PostForm
-	obj.Body = string(rawBody)
+	obj.GetParams = parseValues(request.URL.Query())
+	obj.Headers = parseHeaders(request.Header)
+	obj.Cookies = parseCookies(cookies)
+
+	switch checkType(request.Header.Get("Content-Type")) {
+	case "text":
+		obj.RawBody = rawBody
+		obj.TextBody = string(rawBody)
+	case "file":
+		obj.RawBody = rawBody
+	}
 
 	return obj, nil
 }
@@ -82,50 +116,22 @@ func requestToObj(request *http.Request, logger logging.ILogger) (dto.IncomingRe
 func responseToObj(response *http.Response, logger logging.ILogger) (dto.IncomingResponse, error) {
 	obj := dto.IncomingResponse{}
 
-	rawBody, err := io.ReadAll(response.Body)
+	decodedBody, err := utils.DecodeResponse(response)
 	if err != nil {
-		logger.Error("Failed to read response body")
+		logger.Error("Failed to decode response")
 		return obj, err
-	}
-
-	switch response.Header.Get("Content-Encoding") {
-	case "gzip":
-		{
-			gzipReader, err := gzip.NewReader(bytes.NewReader(rawBody))
-			if err != nil {
-				logger.Error("Failed to create a gzip reader")
-				return obj, err
-			}
-			defer gzipReader.Close()
-
-			rawBody, err = io.ReadAll(gzipReader)
-			if err != nil {
-				logger.Error("Failed to read response body")
-				return obj, err
-			}
-		}
-	case "br":
-		{
-			brReader := brotli.NewReader(bytes.NewReader(rawBody))
-
-			rawBody, err = io.ReadAll(brReader)
-			if err != nil {
-				logger.Error("Failed to read response body")
-				return obj, err
-			}
-		}
 	}
 
 	obj.Code = response.StatusCode
 	obj.Message = http.StatusText(response.StatusCode)
-	obj.Headers = response.Header
+	obj.Headers = parseHeaders(response.Header)
 
 	switch checkType(response.Header.Get("Content-Type")) {
 	case "text":
-		obj.RawBody = rawBody
-		obj.TextBody = string(rawBody)
+		obj.RawBody = decodedBody
+		obj.TextBody = string(decodedBody)
 	case "file":
-		obj.RawBody = rawBody
+		obj.RawBody = decodedBody
 	}
 
 	return obj, nil

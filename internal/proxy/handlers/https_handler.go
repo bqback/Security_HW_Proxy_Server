@@ -40,6 +40,18 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Header.Del("Proxy-Connection")
 	r.RequestURI = ""
 
+	rBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		logger.Error("Error reading body: " + err.Error())
+		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
+	}
+	if len(rBody) == 0 && (r.Method == http.MethodPost) {
+		logger.DebugFmt("Zero length body in post request", requestID, funcName, nodeName)
+	}
+
+	r.Body = io.NopCloser(bytes.NewReader(rBody))
+
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		logger.Error("Failed to cast connection to hijacker")
@@ -76,6 +88,7 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Certificates:     []tls.Certificate{tlsCert},
 	}
 	tlsConn := tls.Server(conn, tlsConfig)
+	h.client.Transport = &http.Transport{TLSClientConfig: tlsConfig}
 	defer tlsConn.Close()
 
 	err = tlsConn.Handshake()
@@ -95,8 +108,9 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
 		return
 	}
+	logger.DebugFmt("TLS request created", requestID, funcName, nodeName)
 
-	reqBody, _ := io.ReadAll(r.Body)
+	reqBody, _ := io.ReadAll(tlsRequest.Body)
 	tlsRequest.Body = io.NopCloser(bytes.NewReader(reqBody))
 
 	err = setTarget(tlsRequest, r.Host)
@@ -105,8 +119,9 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
 		return
 	}
+	logger.DebugFmt("TLS request target set", requestID, funcName, nodeName)
 
-	response, err := http.DefaultClient.Do(tlsRequest)
+	response, err := h.client.Do(tlsRequest)
 	if err != nil {
 		logger.Error("Failed to send request to server: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
@@ -116,6 +131,8 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.DebugFmt("Got response", requestID, funcName, nodeName)
 	respBody, _ := io.ReadAll(response.Body)
 	response.Body = io.NopCloser(bytes.NewReader(respBody))
+
+	tlsRequest.Body = io.NopCloser(bytes.NewReader(reqBody))
 
 	reqObj, err := requestToObj(tlsRequest, logger)
 	if err != nil {
@@ -130,9 +147,6 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rawResponseBody, _ := io.ReadAll(response.Body)
-	response.Body = io.NopCloser(bytes.NewReader(rawResponseBody))
-
 	respObj, err := responseToObj(response, logger)
 	if err != nil {
 		logger.Error("Failed to parse response into object: " + err.Error())
@@ -146,11 +160,12 @@ func (h HTTPSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Body = io.NopCloser(bytes.NewReader([]byte(rawResponseBody)))
+	response.Body = io.NopCloser(bytes.NewReader(respBody))
 
 	err = response.Write(tlsConn)
 	if err != nil {
 		logger.Error("Failed to return response to client: " + err.Error())
 		apperrors.ReturnError(apperrors.InternalServerErrorResponse, w, r)
+		return
 	}
 }

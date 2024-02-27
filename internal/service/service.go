@@ -17,8 +17,8 @@ type Services struct {
 
 func NewServices(storages *storage.Storages) *Services {
 	return &Services{
-		Repeat:   repeat.NewRepeatService(storages.Request),
-		Request:  request.NewRequestService(storages.Request),
+		Repeat:   repeat.NewRepeatService(storages.Request, storages.Response),
+		Request:  request.NewRequestService(storages.Request, storages.Response),
 		Response: response.NewResponseService(storages.Response),
 		Scan:     scan.NewScanService(storages.Request),
 	}

@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public."request_response"
         ON UPDATE NO ACTION
         ON DELETE CASCADE
         NOT VALID
-)
+);
 
 ---- create above / drop below ----
 
