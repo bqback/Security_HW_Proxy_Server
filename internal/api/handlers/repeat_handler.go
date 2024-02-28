@@ -48,6 +48,7 @@ func (rh RepeatHandler) RepeatRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response.ContentLength = int64(len(decodedBody))
 	response.Body = io.NopCloser(bytes.NewReader(decodedBody))
 
 	err = response.Write(w)

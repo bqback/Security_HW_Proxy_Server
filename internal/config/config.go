@@ -14,11 +14,12 @@ import (
 // ServerConfig
 // структура для хранения параметров сервера
 type Config struct {
-	API      *APIConfig      `yaml:"api"`
-	Proxy    *ProxyConfig    `yaml:"proxy"`
-	Database *DatabaseConfig `yaml:"db"`
-	Logging  *LoggingConfig  `yaml:"logging"`
-	TLS      *TLSConfig      `yaml:"tls"`
+	API        *APIConfig      `yaml:"api"`
+	Proxy      *ProxyConfig    `yaml:"proxy"`
+	Database   *DatabaseConfig `yaml:"db"`
+	Logging    *LoggingConfig  `yaml:"logging"`
+	TLS        *TLSConfig      `yaml:"tls"`
+	FileAttack *FAConfig       `yaml:"file_attack"`
 }
 
 type APIConfig struct {
@@ -61,6 +62,11 @@ type TLSConfig struct {
 	CAKeyFile     string `yaml:"ca_key"`
 	CACertFile    string `yaml:"ca_cert"`
 	CertGenScript string `yaml:"cert_gen"`
+}
+
+type FAConfig struct {
+	DictDir  string `yaml:"dir"`
+	DictFile string `yaml:"dict_file"`
 }
 
 // LoadConfig
@@ -115,6 +121,9 @@ func LoadConfig(envPath string, configPath string) (*Config, error) {
 	config.TLS.CACertFile = filepath.Join(config.TLS.TLSDir, config.TLS.CACertFile)
 	config.TLS.CAKeyFile = filepath.Join(config.TLS.TLSDir, config.TLS.CAKeyFile)
 	config.TLS.CertGenScript = filepath.Join(config.TLS.TLSDir, config.TLS.CertGenScript)
+
+	config.FileAttack.DictDir = filepath.Join(homeDir, config.FileAttack.DictDir)
+	config.FileAttack.DictFile = filepath.Join(config.FileAttack.DictDir, config.FileAttack.DictFile)
 
 	proxyURL, err := url.Parse("http://" + config.Proxy.Host + ":" + fmt.Sprint(config.Proxy.Port))
 	if err != nil {
