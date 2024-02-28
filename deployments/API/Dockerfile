@@ -39,6 +39,11 @@ RUN cd /home/nonroot/.tls && \
         cp proxy-serv-ca.crt /usr/local/share/ca-certificates/proxy-serv-ca.crt && update-ca-certificates && \
         mkdir certs && mkdir keys
 
+RUN cd /home/nonroot/ && \
+        mkdir file_attack
+
+RUN chown -R nonroot /home/nonroot
+
 EXPOSE 8080
 EXPOSE 5432
 

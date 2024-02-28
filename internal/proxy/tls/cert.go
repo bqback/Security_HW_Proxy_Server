@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"proxy_server/internal/config"
 	"proxy_server/internal/logging"
+	"sync"
 )
 
 func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls.Certificate, error) {
@@ -19,8 +20,12 @@ func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls
 	keyFilePath := filepath.Join(config.KeyDir, keyFileName)
 	certificate := tls.Certificate{}
 
+	mu := &sync.RWMutex{}
+
 	if _, err := os.Stat(certFilePath); os.IsNotExist(err) {
 		logger.Debug("Generating certificate")
+
+		mu.Lock()
 
 		serial, err := genSerial()
 		if err != nil {
@@ -37,6 +42,8 @@ func GenCert(host string, config *config.TLSConfig, logger logging.ILogger) (tls
 		if err := genCmd.Run(); err != nil {
 			return certificate, err
 		}
+
+		mu.Unlock()
 	}
 
 	certF, err := os.ReadFile(certFilePath)
