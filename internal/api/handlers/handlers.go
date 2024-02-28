@@ -20,7 +20,7 @@ func NewHandlers(services *service.Services, config *config.Config) *Handlers {
 	return &Handlers{
 		RequestHandler: *NewRequestHandler(services.Request),
 		RepeatHandler:  *NewRepeatHandler(services.Repeat, config),
-		ScanHandler:    *NewScanHandler(services.Scan),
+		ScanHandler:    *NewScanHandler(services.Scan, config),
 	}
 }
 
@@ -48,8 +48,16 @@ func NewRepeatHandler(reps service.IRepeatService, config *config.Config) *Repea
 
 // NewScanHandler
 // возвращает ScanHandler с необходимыми сервисами
-func NewScanHandler(scans service.IScanService) *ScanHandler {
+func NewScanHandler(scans service.IScanService, config *config.Config) *ScanHandler {
+	client := http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(config.Proxy.URL),
+		},
+	}
+	dictLocation := config.FileAttack.DictFile
 	return &ScanHandler{
-		ss: scans,
+		ss:           scans,
+		client:       client,
+		dictLocation: dictLocation,
 	}
 }

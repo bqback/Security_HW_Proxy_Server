@@ -4,6 +4,10 @@ api:
   port: 8000
   host: api
 
+file_attack:
+  dir: "file_attack"
+  dict_file: "dict.txt" 
+
 proxy:
   port: 8080
   host: proxy

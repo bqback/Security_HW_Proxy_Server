@@ -1,15 +1,19 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"context"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"proxy_server/internal/logging"
 	"proxy_server/internal/pkg/dto"
 	"proxy_server/internal/pkg/entities"
+	"strings"
 
 	"github.com/andybalholm/brotli"
 )
@@ -35,6 +39,9 @@ func GetReqID(ctx context.Context) *dto.RequestID {
 }
 
 func ObjToRequest(obj *entities.Request) (*http.Request, error) {
+	if !strings.HasPrefix(obj.Path, "/") {
+		obj.Path = "/" + obj.Path
+	}
 	reqUrl, err := url.Parse(obj.Scheme + "://" + obj.Host + obj.Path)
 	if err != nil {
 		return nil, err
@@ -103,4 +110,60 @@ func DecodeResponse(response *http.Response) ([]byte, error) {
 	}
 
 	return decodedBody, nil
+}
+
+func LoadDict(dictFile string) ([]string, error) {
+	filenames := []string{}
+
+	if _, err := os.Stat(dictFile); os.IsNotExist(err) {
+		log.Println("File not found, downloading")
+		err := downloadDict(dictFile)
+		if err != nil {
+			return filenames, err
+		}
+	}
+	log.Println("File downloaded")
+
+	file, err := os.Open(dictFile)
+	if err != nil {
+		log.Println("Failed to open file")
+		return filenames, err
+	}
+	defer file.Close()
+	log.Println("File opened")
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		filenames = append(filenames, scanner.Text())
+	}
+	log.Println("File parsed")
+
+	return filenames, scanner.Err()
+}
+
+func downloadDict(target string) error {
+	file, err := os.Create(target)
+	if err != nil {
+		return err
+	}
+	log.Println("File created")
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+
+	source := "https://raw.githubusercontent.com/maurosoria/dirsearch/master/db/dicc.txt"
+	resp, err := http.Get(source)
+	if err != nil {
+		log.Println("Failed to download")
+		return err
+	}
+	log.Println("Got file")
+
+	len, err := w.ReadFrom(resp.Body)
+	if err != nil {
+		return err
+	}
+	log.Println("Wrote", len, "bytes")
+
+	return nil
 }
