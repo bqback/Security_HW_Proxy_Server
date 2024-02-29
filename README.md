@@ -13,8 +13,11 @@
 ### Вручную
 
 1. Создать файл `.env` в папке config
+
 `touch config/.env`
+
 2. Добавить туда следующий текст
+
 ```
 MIGRATOR_PASSWORD="postgres"
 POSTGRES_USER="postgres"
@@ -22,13 +25,21 @@ POSTGRES_PASSWORD="postgres"
 POSTGRES_DB="ProxyStorage"
 POSTGRES_HOST="proxy-db"
 ```
+
 3. Запустить скрипт `gen_ca.sh` из корневой папки
+
 `./gen_ca.sh`
+
 4. Скопировать полученный файл корневого сертификата в локальное хранилище сертификатов
+
 `sudo cp proxy-serv-ca.crt /usr/local/share/ca-certificates/proxy-serv-ca.crt`
+
 5. Обновить сертификаты
+
 `sudo update-ca-certificates`
+
 6. Поднять докер
+
 `docker-compose up --build --detach`
 
 ## Windows
@@ -44,10 +55,15 @@ POSTGRES_HOST="proxy-db"
 ### Вручную
 
 1-3. Повторить шаги 1-3 из инструкции для Linux
+
 4. Установить сгенерированный сертификат
+
 `Import-Certificate -FilePath 'proxy-serv-ca.crt' -CertStoreLocation Cert:\CurrentUser\Root`
-4.1. Либо вручную установить его из проводника двойным нажатием
+
+, либо вручную установить его из проводника двойным нажатием
+
 5. Поднять докер
+
 `docker-compose up --build --detach`
 
 # Использование
@@ -55,6 +71,7 @@ POSTGRES_HOST="proxy-db"
 ## cURL
 
 `curl -x localhost:8080 http://example.org`
+
 `curl -x localhost:8080 --ssl-revoke-best-effort https://example.org`
 
 ## Firefox
